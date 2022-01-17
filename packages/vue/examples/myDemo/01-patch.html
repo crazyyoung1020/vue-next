@@ -1,0 +1,20 @@
+<div id="app">
+    <h1>vue3 更新机制</h1>
+    <div>{{ counter }}</div>
+</div>
+<script src="../../dist/vue.global.js"></script>
+<script>
+    const app = Vue.createApp({
+        data(){
+            return {
+                counter:0
+            }
+        },
+        mounted(){
+            setTimeout(()=>{
+                this.counter++
+            },1000)
+        }
+    })
+    app.mount('#app')// 这里传id要带#，因为vue是通过document.querySelector去获取dom节点的
+</script>

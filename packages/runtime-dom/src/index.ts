@@ -73,6 +73,8 @@ export const createApp = ((...args) => {
 
   const { mount } = app
   app.mount = (containerOrSelector: Element | ShadowRoot | string): any => {
+    // 这里对app方法里的mount做一层改写，先做一些自己的逻辑，比如处理根节点dom
+    // 我们传进来的是字符串#app，这里会去帮我们找找到具体的dom节点对象
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
 

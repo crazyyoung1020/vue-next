@@ -353,6 +353,7 @@ function baseCreateRenderer(
 
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
+  // 这里是vue执行渲染的地方
   const patch: PatchFn = (
     n1,
     n2,
@@ -381,6 +382,7 @@ function baseCreateRenderer(
     }
 
     const { type, ref, shapeFlag } = n2
+    debugger;
     switch (type) {
       case Text:
         processText(n1, n2, container, anchor)
@@ -1247,6 +1249,7 @@ function baseCreateRenderer(
       return
     }
     // 走到这里
+    // 安装渲染函数副作用
     setupRenderEffect(
       instance,
       initialVNode,
@@ -1307,6 +1310,9 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // 组件更新函数
+    // 对patch函数产生了调用，在调用之前会获取渲染函数的结果，也就是当前组件的vNode
+    // 在首次执行渲染函数时，其实已经建立了依赖关系
     const componentUpdateFn = () => {
       if (!instance.isMounted) {
         let vnodeHook: VNodeHook | null | undefined
@@ -1546,12 +1552,14 @@ function baseCreateRenderer(
     }
 
     // create reactive effect for rendering
+    // 为组件渲染创建一个响应式的副作用函数
     const effect = (instance.effect = new ReactiveEffect(
-      componentUpdateFn,
-      () => queueJob(instance.update),
+      componentUpdateFn,//执行更新函数
+      () => queueJob(instance.update),// scheduler
       instance.scope // track it in component's effect scope
     ))
 
+    // 从这里可以看到上面被queueJob执行的是 effect.run函数
     const update = (instance.update = effect.run.bind(effect) as SchedulerJob)
     update.id = instance.uid
     // allowRecurse
