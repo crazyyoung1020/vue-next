@@ -1,0 +1,31 @@
+<div id="app">
+    <h1>vue3 init</h1>
+    <comp></comp>
+</div>
+<script src="../dist/vue.global.js"></script>
+<script>
+    // vue2: new Vue({})
+    // 变化1：函数创建实例
+    // 对ts强类型支持更好，因为函数式的调用，ts可以很明确的规定好入参是什么，出参是什么。
+    // 而且this的指向也会特别明确。构造函数的方式，也不是不可以，但会特别麻烦。
+    // 另外装饰器配合class也能做入出参校验、this指向，但尤雨溪觉得有性能问题，且至今没有成为一个规范，目前只有angular在用
+    // vue3: createApp({})
+    const app = Vue.createApp({
+        // 现在h函数不是执行render的时候传进来的入参了，直接调用Vue的h方法
+        // 以前h函数的第二个入参，需要判断是什么类型，props还是attrs，然后再放到相应的位置
+        // 现在也不用，vue3会帮用户判断哪些是用户自定义的方法，哪些是框架支持的
+        render(){
+            return Vue.h('div',{
+                myProp,title,onClick
+            })
+        }
+    })
+    // 变化2：实例方法,不会直接调用构造函数下面的静态方法，如Vue.component()
+    // 之前会有污染，因为如果改变了构造函数，创建出来的实例会受到影响
+    app.component('comp',{
+        template:'<div>comp</div>'
+    })
+    // 变化3：挂载又$mount变为mount，更简洁
+    // API简化、一致性
+    app.mount('app')
+</script>

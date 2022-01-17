@@ -174,6 +174,8 @@ export type CreateAppFunction<HostElement> = (
 
 let uid = 0
 
+// 最后我们的createApp方法实际这个工厂函数返回出来的
+// 这个方法真正返回了一个app实例
 export function createAppAPI<HostElement>(
   render: RootRenderFunction,
   hydrate?: RootHydrateFunction
@@ -288,6 +290,7 @@ export function createAppAPI<HostElement>(
           // this will be set on the root instance on initial mount.
           vnode.appContext = context
 
+          // 这个render方式是调用createAppAPI构造createApp方法时候传入的
           // HMR root reload
           if (__DEV__) {
             context.reload = () => {

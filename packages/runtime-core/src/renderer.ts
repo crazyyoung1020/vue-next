@@ -305,11 +305,12 @@ export function createHydrationRenderer(
   return baseCreateRenderer(options, createHydrationFunctions)
 }
 
+// 此处两个baseCreateRenderer，没看懂是干嘛的，为啥这样写。。。
 // overload 1: no hydration
 function baseCreateRenderer<
   HostNode = RendererNode,
   HostElement = RendererElement
->(options: RendererOptions<HostNode, HostElement>): Renderer<HostElement>
+>(options: RendererOptions<HostNode, HostElement>): Renderer<HostElement> // 这里上面interface定义的Renderer来校验renderer的格式
 
 // overload 2: with hydration
 function baseCreateRenderer(
@@ -318,6 +319,7 @@ function baseCreateRenderer(
 ): HydrationRenderer
 
 // implementation
+// 这里是我们真正调用的baseCreateRenderer
 function baseCreateRenderer(
   options: RendererOptions,
   createHydrationFns?: typeof createHydrationFunctions
@@ -420,6 +422,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 初次挂载因为类型是component，走到了这里
           processComponent(
             n1,
             n2,
@@ -1168,6 +1171,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // 初次挂载又走到了这里
         mountComponent(
           n2,
           container,
@@ -1242,7 +1246,7 @@ function baseCreateRenderer(
       }
       return
     }
-
+    // 走到这里
     setupRenderEffect(
       instance,
       initialVNode,
@@ -2301,11 +2305,13 @@ function baseCreateRenderer(
   }
 
   const render: RootRenderFunction = (vnode, container, isSVG) => {
+    // 我们实际执行mount的时候，执行的render是这里
     if (vnode == null) {
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
+      // mount挂载的时候肯定已经有vNode了，所以走这里
       patch(container._vnode || null, vnode, container, null, null, null, isSVG)
     }
     flushPostFlushCbs()
@@ -2333,6 +2339,7 @@ function baseCreateRenderer(
     )
   }
 
+  // 在这里return了我们想要的render和createApp方法
   return {
     render,
     hydrate,

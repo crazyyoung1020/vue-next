@@ -11,7 +11,7 @@ import {
   isRuntimeOnly,
   DeprecationTypes,
   compatUtils
-} from '@vue/runtime-core'
+} from '@vue/runtime-core' // 这里这个@vue指向 "packages/*/src"，是在tsconfig.json中配置的
 import { nodeOps } from './nodeOps'
 import { patchProp } from './patchProp'
 // Importing from the compiler, will be tree-shaken in prod
