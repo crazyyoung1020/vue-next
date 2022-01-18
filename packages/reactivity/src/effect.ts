@@ -240,6 +240,7 @@ export function trackEffects(
   }
 }
 
+// 组件更新，set里面会触发这里的trigger
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -254,6 +255,7 @@ export function trigger(
     return
   }
 
+  // TODO 这里deps是dom更新事件收集器？
   let deps: (Dep | undefined)[] = []
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared

@@ -81,6 +81,7 @@ function findInsertionIndex(id: number) {
   return start
 }
 
+// 任务队列处理
 export function queueJob(job: SchedulerJob) {
   // the dedupe search uses the startIndex argument of Array.includes()
   // by default the search index includes the current job that is being run
@@ -105,10 +106,11 @@ export function queueJob(job: SchedulerJob) {
   }
 }
 
+// 任务冲刷函数
 function queueFlush() {
   if (!isFlushing && !isFlushPending) {
     isFlushPending = true
-    currentFlushPromise = resolvedPromise.then(flushJobs)
+    currentFlushPromise = resolvedPromise.then(flushJobs)// 到这里，整体变成了一个promise异步状态，按flushJobs方法去冲刷任务
   }
 }
 

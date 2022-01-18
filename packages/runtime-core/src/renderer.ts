@@ -1313,6 +1313,7 @@ function baseCreateRenderer(
     // 组件更新函数
     // 对patch函数产生了调用，在调用之前会获取渲染函数的结果，也就是当前组件的vNode
     // 在首次执行渲染函数时，其实已经建立了依赖关系
+    // effect.run()函数本质上就是执行的这里的更新函数
     const componentUpdateFn = () => {
       if (!instance.isMounted) {
         let vnodeHook: VNodeHook | null | undefined
@@ -1453,7 +1454,7 @@ function baseCreateRenderer(
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
-        let { next, bu, u, parent, vnode } = instance
+        let { next, bu, u, parent, vnode } = instance// 从实例里机解析出vNode
         let originNext = next
         let vnodeHook: VNodeHook | null | undefined
         if (__DEV__) {
@@ -1489,16 +1490,19 @@ function baseCreateRenderer(
         if (__DEV__) {
           startMeasure(instance, `render`)
         }
+        // 计算出虚拟dom树nextTree
         const nextTree = renderComponentRoot(instance)
         if (__DEV__) {
           endMeasure(instance, `render`)
         }
+        // 当前的虚拟dom树
         const prevTree = instance.subTree
         instance.subTree = nextTree
 
         if (__DEV__) {
           startMeasure(instance, `patch`)
         }
+        // diff算法比对两颗树的差别并进行更新
         patch(
           prevTree,
           nextTree,
@@ -1554,8 +1558,8 @@ function baseCreateRenderer(
     // create reactive effect for rendering
     // 为组件渲染创建一个响应式的副作用函数
     const effect = (instance.effect = new ReactiveEffect(
-      componentUpdateFn,//执行更新函数
-      () => queueJob(instance.update),// scheduler
+      componentUpdateFn,//传入更新函数待执行
+      () => queueJob(instance.update),// 这里就是真正被执行的efect.scheduler的那个函数
       instance.scope // track it in component's effect scope
     ))
 

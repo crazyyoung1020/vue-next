@@ -139,6 +139,7 @@ function createGetter(isReadonly = false, shallow = false) {
 const set = /*#__PURE__*/ createSetter()
 const shallowSet = /*#__PURE__*/ createSetter(true)
 
+// set方法的工厂函数
 function createSetter(shallow = false) {
   return function set(
     target: object,
@@ -168,6 +169,7 @@ function createSetter(shallow = false) {
       if (!hadKey) {
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
+        // 更新数据hadKey肯定为false，所以走这里
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }

@@ -260,6 +260,7 @@ export interface ComponentRenderContext {
   _: ComponentInternalInstance
 }
 
+// 这是大概是用来构造响应式的数据的构造函数，我们修改数据会进到这个类里的set方法
 export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
   get({ _: instance }: ComponentRenderContext, key: string) {
     const { ctx, setupState, data, props, accessCache, type, appContext } =

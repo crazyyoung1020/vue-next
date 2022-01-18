@@ -67,7 +67,7 @@ export function callWithErrorHandling(
 ) {
   let res
   try {
-    res = args ? fn(...args) : fn()
+    res = args ? fn(...args) : fn()//这里的fn实际就是effect.run()
   } catch (err) {
     handleError(err, instance, type)
   }
