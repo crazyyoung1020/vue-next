@@ -2352,9 +2352,10 @@ function baseCreateRenderer(
   }
 
   // 在这里return了我们想要的render和createApp方法
+  // 返回的就是渲染器
   return {
-    render,
-    hydrate,
+    render, // render(vnode, '#app')
+    hydrate, // 注水， ssr
     createApp: createAppAPI(render, hydrate)
   }
 }

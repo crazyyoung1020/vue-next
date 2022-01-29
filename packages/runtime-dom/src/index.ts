@@ -40,6 +40,7 @@ let renderer: Renderer<Element | ShadowRoot> | HydrationRenderer
 let enabledHydration = false
 
 function ensureRenderer() {
+  // 这个render是单例的，一个程序只有一个，有则使用，没有再创建
   return (
     renderer ||
     (renderer = createRenderer<Node, Element | ShadowRoot>(rendererOptions))
