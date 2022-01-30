@@ -295,6 +295,7 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
       const n = accessCache![key]
       if (n !== undefined) {
         switch (n) {
+          // 如果用户访问一个值的时候，我们先从setup取值，再从data取值
           case AccessTypes.SETUP:
             return setupState[key]
           case AccessTypes.DATA:

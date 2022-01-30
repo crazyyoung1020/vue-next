@@ -652,6 +652,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
           `Plain object usage is no longer supported.`
       )
     }
+    // 去执行用户的data选项，然后拿到一个data对象
     const data = dataOptions.call(publicThis, publicThis)
     if (__DEV__ && isPromise(data)) {
       warn(
@@ -663,6 +664,8 @@ export function applyOptions(instance: ComponentInternalInstance) {
     if (!isObject(data)) {
       __DEV__ && warn(`data() should return an object.`)
     } else {
+      // 这里会隐式的去执行reactive将data变成响应式数据
+      // 只不过如果用setup函数去做，那么需要用户自己显示的去执行reactive
       instance.data = reactive(data)
       if (__DEV__) {
         for (const key in data) {

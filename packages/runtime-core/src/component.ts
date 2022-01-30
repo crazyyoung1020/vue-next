@@ -631,6 +631,7 @@ function setupStatefulComponent(
   instance.accessCache = Object.create(null)
   // 1. create public instance / render proxy
   // also mark it raw so it's never observed
+  // 此处ctx就是vue2中大家熟悉的this，组件实例
   instance.proxy = markRaw(new Proxy(instance.ctx, PublicInstanceProxyHandlers))
   if (__DEV__) {
     exposePropsOnRenderContext(instance)
@@ -643,15 +644,19 @@ function setupStatefulComponent(
 
     setCurrentInstance(instance)
     pauseTracking()
+    // 这里会执行setup函数
     const setupResult = callWithErrorHandling(
       setup,
       instance,
       ErrorCodes.SETUP_FUNCTION,
+      // setup函数有两个形参，一个是属性props，一个是上下文，里面包含attrs，emit，slots
+      // 这两个形参就是在这里传的
       [__DEV__ ? shallowReadonly(instance.props) : instance.props, setupContext]
     )
     resetTracking()
     unsetCurrentInstance()
 
+    // setup返回结果如果是异步组件promise处理如下
     if (isPromise(setupResult)) {
       setupResult.then(unsetCurrentInstance, unsetCurrentInstance)
 
@@ -675,9 +680,12 @@ function setupStatefulComponent(
         )
       }
     } else {
+      // 处理setup返回结果
       handleSetupResult(instance, setupResult, isSSR)
     }
   } else {
+    // 这里注意，finishComponentSetup是无论如何都会走的
+    // 如果setup进了上面那个判断分支，最终还是会在handleSetupResult里面去执行finishComponentSetup
     finishComponentSetup(instance, isSSR)
   }
 }
@@ -687,6 +695,7 @@ export function handleSetupResult(
   setupResult: unknown,
   isSSR: boolean
 ) {
+   // 如果是个渲染函数，则走这里
   if (isFunction(setupResult)) {
     // setup returned an inline render function
     if (__SSR__ && (instance.type as ComponentOptions).__ssrInlineRender) {
@@ -813,6 +822,7 @@ export function finishComponentSetup(
     }
   }
 
+  // 兼容vue2的options写法
   // support for 2.x options
   if (__FEATURE_OPTIONS_API__ && !(__COMPAT__ && skipOptions)) {
     setCurrentInstance(instance)

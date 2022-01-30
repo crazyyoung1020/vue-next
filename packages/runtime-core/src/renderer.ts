@@ -381,6 +381,8 @@ function baseCreateRenderer(
       n2.dynamicChildren = null
     }
 
+    // 获取新的vnode它的类型，做不同的逻辑流程
+    // n2;{type: 'div} {type: {...}}
     const { type, ref, shapeFlag } = n2
     debugger;
     switch (type) {
@@ -424,6 +426,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 初始化走这里
           // 初次挂载因为类型是component，走到了这里
           processComponent(
             n1,
@@ -1164,6 +1167,7 @@ function baseCreateRenderer(
   ) => {
     n2.slotScopeIds = slotScopeIds
     if (n1 == null) {
+      // 挂载
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
@@ -1173,7 +1177,11 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // 没有缓存走这里
         // 初次挂载又走到了这里
+        // mountComponent
+        // 1. updateComponent
+        // 2. new Watcher
         mountComponent(
           n2,
           container,
@@ -1200,6 +1208,7 @@ function baseCreateRenderer(
   ) => {
     // 2.x compat may pre-create the component instance before actually
     // mounting
+    // 1. 创建组件实例
     const compatMountInstance =
       __COMPAT__ && initialVNode.isCompatRoot && initialVNode.component
     const instance: ComponentInternalInstance =
@@ -1229,6 +1238,8 @@ function baseCreateRenderer(
       if (__DEV__) {
         startMeasure(instance, `init`)
       }
+      // 2.组件实例安装，相当于组件初始化，this._init
+      // 属性声明，响应式等等
       setupComponent(instance)
       if (__DEV__) {
         endMeasure(instance, `init`)
@@ -1249,7 +1260,7 @@ function baseCreateRenderer(
       return
     }
     // 走到这里
-    // 安装渲染函数副作用
+    // 3. 安装渲染函数副作用，相当于updateComponent + Watcher
     setupRenderEffect(
       instance,
       initialVNode,
@@ -1381,6 +1392,8 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `render`)
           }
+          // 首先获取组件vnode，其实就是调用组件render
+          // 这次调用触发了依赖收集
           const subTree = (instance.subTree = renderComponentRoot(instance))
           if (__DEV__) {
             endMeasure(instance, `render`)
@@ -1491,11 +1504,12 @@ function baseCreateRenderer(
           startMeasure(instance, `render`)
         }
         // 计算出虚拟dom树nextTree
+        // 重新获取最新的渲染结果nextTree
         const nextTree = renderComponentRoot(instance)
         if (__DEV__) {
           endMeasure(instance, `render`)
         }
-        // 当前的虚拟dom树
+        // 之前的虚拟dom树
         const prevTree = instance.subTree
         instance.subTree = nextTree
 
@@ -2316,6 +2330,7 @@ function baseCreateRenderer(
     return hostNextSibling((vnode.anchor || vnode.el)!)
   }
 
+  // 在mount里调用的
   const render: RootRenderFunction = (vnode, container, isSVG) => {
     // 我们实际执行mount的时候，执行的render是这里
     if (vnode == null) {

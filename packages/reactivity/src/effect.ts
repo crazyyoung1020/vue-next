@@ -50,6 +50,7 @@ let activeEffect: ReactiveEffect | undefined
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
+// 传入副作用函数，添加依赖关系
 export class ReactiveEffect<T = any> {
   active = true
   deps: Dep[] = []
@@ -77,6 +78,7 @@ export class ReactiveEffect<T = any> {
     }
     if (!effectStack.includes(this)) {
       try {
+        // 将依赖入栈
         effectStack.push((activeEffect = this))
         enableTracking()
 
@@ -87,6 +89,7 @@ export class ReactiveEffect<T = any> {
         } else {
           cleanupEffect(this)
         }
+        // 立即执行一次依赖回调函数并返回结果
         return this.fn()
       } finally {
         if (effectTrackDepth <= maxMarkerBits) {
@@ -96,6 +99,7 @@ export class ReactiveEffect<T = any> {
         trackOpBit = 1 << --effectTrackDepth
 
         resetTracking()
+        // 将依赖出栈
         effectStack.pop()
         const n = effectStack.length
         activeEffect = n > 0 ? effectStack[n - 1] : undefined
@@ -255,8 +259,11 @@ export function trigger(
     return
   }
 
-  // TODO 这里deps是dom更新事件收集器？
+  // TODO 这里deps是dom更新事件收集器？是的，就是用于收集该变量对象的key所有的依赖的更新函数
   let deps: (Dep | undefined)[] = []
+  // 这里对于数组的拦截做了防抖处理
+  // 比如我们给数组push一个元素，首先新增一个元素会触发proxy的set，然后修改length的长度，又会触发set
+  // 所以很多操作会触发多次的视图更新，那么我们其实只用更新一次就好了，这里就做了防抖处理
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared
     // trigger all effects for target

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app">
+    {{title}}
+    <p @click="add">{{counter}}</p>
+    <p>{{doubleCounter}}</p>
+    <p>{{anotherCounter}}</p>
+  </div>
+  <script src="../dist/vue.global.js"></script>
+  <script>
+    // 可以将counter相关逻辑抽离出来，这样counter相关的方法和赋值改变，派生值都能打包一起复用
+    // 这个可以放在任何地方都是ok的
+    function useCounter() {
+      // 对象响应式
+      // Proxy
+      const state = reactive({
+          title:'hello,vue3!!',
+          counter:1
+        })
+
+        const add = () => {
+          state.counter++
+        }
+
+
+        const doubleCounter = computed(() => {
+          return state.counter * 2
+        })
+        
+        const anotherCounter = ref(1)
+
+      return {
+        state,
+        add,
+        doubleCounter,
+        anotherCounter
+      }
+    }
+
+    const { createApp, reactive, computed, ref, toRefs, onMounted } = Vue;
+    const app = createApp({
+      // data() {
+      //   return {
+      //     title:'hello vue3'
+      //   }
+      // }
+      // composition api
+      setup() {
+
+        const { state, add, anotherCounter, doubleCounter } = useCounter()
+        // mounted钩子，
+        onMounted(() => {
+          // ref属性在js里不能直接访问，需要去访问它的value
+          anotherCounter.value = 3;
+        })
+
+        return {
+          ...toRefs(state),
+          doubleCounter,
+          anotherCounter,
+          add
+        }
+      }
+    })
+    app.mount('#app')
+  </script>
+</body>
+</html>
