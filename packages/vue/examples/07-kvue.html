@@ -10,7 +10,7 @@
 
 <body>
   <div id="app">
-    <h1>{{state.title}}</h1>
+    <h1>{{title}}</h1>
   </div>
   <script src="./reactive.js"></script>
   <script src="./compiler.js"></script>
@@ -71,22 +71,22 @@
                 }
 
                 this.update = effect(() => {
-                  const el = options.render.call(this.proxy)
-                  parent.innerHTML = ''
-                  // parent.appendChild(el)
-                  insert(el, parent)
+                  // const el = options.render.call(this.proxy)
+                  // parent.innerHTML = ''
+                  // // parent.appendChild(el)
+                  // insert(el, parent)
 
                   // vnode
                   // 渲染vdom
-                  // const vnode = options.render(this.proxy)
-                  // if (!this.isMounted) {
-                  //   const el = this.createElm(vnode)
-                  //   parent.innerHTML = ''
-                  //   insert(el, parent)
-                  //   this.isMounted = true
-                  // } else {
-                  //   this.patch(this._vnode, vnode)
-                  // }
+                  const vnode = options.render(this.proxy)
+                  if (!this.isMounted) {
+                    const el = this.createElm(vnode)
+                    parent.innerHTML = ''
+                    insert(el, parent)
+                    this.isMounted = true
+                  } else {
+                    this.patch(this._vnode, vnode)
+                  }
                 })
               },
               // ⾸次创建
@@ -141,7 +141,7 @@
     const app = createApp({
       data() {
         return {
-          title: 'hello,vue3!'
+          // title: 'hello,vue3!'
         }
       },
       setup() {
