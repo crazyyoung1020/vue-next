@@ -277,12 +277,15 @@ export function createAppAPI<HostElement>(
         return app
       },
 
+      // vnode => dom
       mount(
         rootContainer: HostElement,
         isHydrate?: boolean,
         isSVG?: boolean
       ): any {
         if (!isMounted) {
+          // 首次挂载，创建根组件对应vnode
+          // 这时候除了一些配置，几乎是空的，后面还要做处理
           const vnode = createVNode(
             rootComponent as ConcreteComponent,
             rootProps

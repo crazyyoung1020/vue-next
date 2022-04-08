@@ -20,13 +20,16 @@ export const enum PatchFlags {
   /**
    * Indicates an element with dynamic textContent (children fast path)
    */
+  // 只有文本是动态的，<p>{{xxx}}</p>
   TEXT = 1,
 
   /**
    * Indicates an element with dynamic class binding.
    */
-  CLASS = 1 << 1,
+  CLASS = 1 << 1, // 10 => 2 , <p :class="xxx">123132</p>
 
+  // 如果遇到TEXT和CLASS都是动态的，如<p :class="xxx">{{xxx}}</p>
+  // 那么可以用TEXT和CLASS做一个 &(与)操作，即TEXT & CLASS, 那么就是 二进制11 => 3
   /**
    * Indicates an element with dynamic style
    * The compiler pre-compiles static string styles into static objects
@@ -65,11 +68,13 @@ export const enum PatchFlags {
   /**
    * Indicates a fragment whose children order doesn't change.
    */
-  STABLE_FRAGMENT = 1 << 6,
+  // 稳定节点，即节点标签是写死的，而不是动态渲染出来的，如v-for
+  STABLE_FRAGMENT = 1 << 6, // 1000000 => 64
 
   /**
    * Indicates a fragment with keyed or partially keyed children
    */
+  // 带key的节点，就是类似于v-for渲染出来的节点，由于不稳定，我们认为它们的老爹是一个fragment
   KEYED_FRAGMENT = 1 << 7,
 
   /**

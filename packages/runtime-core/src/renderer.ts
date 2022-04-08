@@ -381,7 +381,7 @@ function baseCreateRenderer(
       n2.dynamicChildren = null
     }
 
-    // 获取新的vnode它的类型，做不同的逻辑流程
+    // 获取新的vnode它的类型，根据不同类型做不同的逻辑流程
     // n2;{type: 'div} {type: {...}}
     const { type, ref, shapeFlag } = n2
     debugger;
@@ -400,6 +400,7 @@ function baseCreateRenderer(
         }
         break
       case Fragment:
+        //  更新时再进patch方法，如果顶层两个元素并列，则会抽象出一个fragment作为俩人共通的老爹
         processFragment(
           n1,
           n2,
@@ -413,6 +414,9 @@ function baseCreateRenderer(
         )
         break
       default:
+        // 这里判断用的是 &(与) 操作
+        // 我们去ShapeFlags的表里看到，ShapeFlags.ELEMENT是1，即二进制1
+        // 那么这俩做 & 操作，就意味着，当前节点的shapeFlag只要二进制第1位是1就ok了，后面是几无所谓
         if (shapeFlag & ShapeFlags.ELEMENT) {
           processElement(
             n1,
@@ -428,6 +432,7 @@ function baseCreateRenderer(
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
           // 初始化走这里
           // 初次挂载因为类型是component，走到了这里
+          // 当有子组件的时候，则还会递归的走到这里
           processComponent(
             n1,
             n2,
@@ -630,7 +635,9 @@ function baseCreateRenderer(
     if (
       !__DEV__ &&
       vnode.el &&
+      // 如果不是克隆节点
       hostCloneNode !== undefined &&
+      // 也没有做静态提升，即我们之前分析的，静态节点会在render函数外用闭包的内部变量形式保存
       patchFlag === PatchFlags.HOISTED
     ) {
       // If a vnode has non-null el, it means it's being reused.
@@ -648,9 +655,15 @@ function baseCreateRenderer(
 
       // mount children first, since some props may rely on child content
       // being already rendered, e.g. `<select value>`
+      // ShapeFlags.TEXT_CHILDREN的值是8，也就是二进制1000
+      // 那么shapeFlag的二进制第三位只要是1，就代表它有文本子元素
+
+      // 在vue2中，发现有子元素则会去递归，然后再判断是什么节点
+      // vue3这里是有改进的
       if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
         hostSetElementText(el, vnode.children as string)
       } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 如果当前元素的子元素不是文本节点，而是有很多元素的数组的话，那就递归遍历子节点
         mountChildren(
           vnode.children as VNodeArrayChildren,
           el,
@@ -787,6 +800,7 @@ function baseCreateRenderer(
     optimized,
     start = 0
   ) => {
+    // 循环fragment内部所有节点，并做递归处理
     for (let i = start; i < children.length; i++) {
       const child = (children[i] = optimized
         ? cloneIfMounted(children[i] as VNode)
@@ -1087,6 +1101,7 @@ function baseCreateRenderer(
     }
 
     if (n1 == null) {
+      // 插入两个锚点，后序n2的节点就往这俩锚点里插入
       hostInsert(fragmentStartAnchor, container, anchor)
       hostInsert(fragmentEndAnchor, container, anchor)
       // a fragment can only have array children
@@ -1103,6 +1118,7 @@ function baseCreateRenderer(
         optimized
       )
     } else {
+      // 补丁标记，如果大于0，就是编译器优化
       if (
         patchFlag > 0 &&
         patchFlag & PatchFlags.STABLE_FRAGMENT &&
@@ -1617,6 +1633,7 @@ function baseCreateRenderer(
     resetTracking()
   }
 
+  // 类似于updateChildren
   const patchChildren: PatchChildrenFn = (
     n1,
     n2,
@@ -1635,6 +1652,7 @@ function baseCreateRenderer(
     const { patchFlag, shapeFlag } = n2
     // fast path
     if (patchFlag > 0) {
+      // 这里和vue2不太一样，会直接看子元素带不带key，分别走不同的方法去diff比较
       if (patchFlag & PatchFlags.KEYED_FRAGMENT) {
         // this could be either fully-keyed or mixed (some keyed some not)
         // presence of patchFlag means children are guaranteed to be arrays
@@ -1798,6 +1816,7 @@ function baseCreateRenderer(
     // 1. sync from start
     // (a b) c
     // (a b) d e
+    // 掐头，比较头部元素
     while (i <= e1 && i <= e2) {
       const n1 = c1[i]
       const n2 = (c2[i] = optimized
@@ -1824,6 +1843,7 @@ function baseCreateRenderer(
     // 2. sync from end
     // a (b c)
     // d e (b c)
+    // 去尾，比较尾部元素
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1]
       const n2 = (c2[e2] = optimized
@@ -1855,6 +1875,7 @@ function baseCreateRenderer(
     // (a b)
     // c (a b)
     // i = 0, e1 = -1, e2 = 0
+    // 如果的老的结束了，新的还有，批量创建
     if (i > e1) {
       if (i <= e2) {
         const nextPos = e2 + 1
@@ -1885,6 +1906,7 @@ function baseCreateRenderer(
     // a (b c)
     // (b c)
     // i = 0, e1 = 0, e2 = -1
+    // 如果新的结束了，老的还有，批量删除
     else if (i > e2) {
       while (i <= e1) {
         unmount(c1[i], parentComponent, parentSuspense, true)
@@ -1901,6 +1923,7 @@ function baseCreateRenderer(
       const s2 = i // next starting index
 
       // 5.1 build key:index map for newChildren
+      // 给新的节点数组，用map对象把他们的索引存下来，用于去老数组里找相同节点
       const keyToNewIndexMap: Map<string | number | symbol, number> = new Map()
       for (i = s2; i <= e2; i++) {
         const nextChild = (c2[i] = optimized
@@ -1920,6 +1943,7 @@ function baseCreateRenderer(
 
       // 5.2 loop through old children left to be patched and try to patch
       // matching nodes & remove nodes that are no longer present
+      // 去遍历老数组，去匹配新数组的节点，没有找到的删除
       let j
       let patched = 0
       const toBePatched = e2 - s2 + 1
@@ -1982,6 +2006,8 @@ function baseCreateRenderer(
 
       // 5.3 move and mount
       // generate longest stable subsequence only when nodes have moved
+      // 新的里面存在，老的里面不存在，则创建并移动
+      // 最长递增子序列，动态规划
       const increasingNewIndexSequence = moved
         ? getSequence(newIndexToOldIndexMap)
         : EMPTY_ARR
